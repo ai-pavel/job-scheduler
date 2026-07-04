@@ -1,6 +1,7 @@
 # JobScheduler
 
 [![CI](https://github.com/pavel-genai/job-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/pavel-genai/job-scheduler/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/pavel-genai/job-scheduler/branch/main/graph/badge.svg)](https://codecov.io/gh/pavel-genai/job-scheduler)
 
 An Elixir/OTP distributed job scheduler with DAG dependencies, configurable retry policies, and cron-based triggers.
 
