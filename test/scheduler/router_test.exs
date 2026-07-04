@@ -44,7 +44,10 @@ defmodule Scheduler.RouterTest do
 
       assert conn.status == 200
       body = Jason.decode!(conn.resp_body)
-      assert body["count"] == 2
+      ids = Enum.map(body["jobs"], & &1["id"])
+      assert "j1" in ids
+      assert "j2" in ids
+      assert body["count"] == length(body["jobs"])
     end
   end
 
