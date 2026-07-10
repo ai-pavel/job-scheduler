@@ -8,7 +8,7 @@ defmodule JobScheduler.MixProject do
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      test_coverage: [threshold: 0]
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -23,7 +23,8 @@ defmodule JobScheduler.MixProject do
     [
       {:plug_cowboy, "~> 2.6"},
       {:jason, "~> 1.4"},
-      {:crontab, "~> 1.1"}
+      {:crontab, "~> 1.1"},
+      {:excoveralls, "~> 0.18", only: :test}
     ]
   end
 end
