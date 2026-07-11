@@ -84,4 +84,61 @@ defmodule Scheduler.JobTest do
       assert {:error, _} = Job.transition(job, :unknown)
     end
   end
+
+  describe "additional transitions" do
+    test "allows pending -> failed" do
+      job = Job.new(%{"name" => "test"})
+      assert {:ok, updated} = Job.transition(job, :failed)
+      assert updated.status == :failed
+      assert updated.completed_at != nil
+    end
+
+    test "allows retrying -> failed" do
+      job = %{Job.new(%{"name" => "test"}) | status: :retrying}
+      assert {:ok, updated} = Job.transition(job, :failed)
+      assert updated.status == :failed
+    end
+
+    test "allows failed -> pending" do
+      job = %{Job.new(%{"name" => "test"}) | status: :failed}
+      assert {:ok, updated} = Job.transition(job, :pending)
+      assert updated.status == :pending
+    end
+
+    test "allows completed -> pending" do
+      job = %{Job.new(%{"name" => "test"}) | status: :completed}
+      assert {:ok, updated} = Job.transition(job, :pending)
+      assert updated.status == :pending
+    end
+
+    test "rejects completed -> running" do
+      job = %{Job.new(%{"name" => "test"}) | status: :completed}
+      assert {:error, _} = Job.transition(job, :running)
+    end
+  end
+
+  describe "valid_states/0" do
+    test "returns all valid states" do
+      states = Job.valid_states()
+      assert :pending in states
+      assert :running in states
+      assert :completed in states
+      assert :failed in states
+      assert :retrying in states
+    end
+  end
+
+  describe "new/1 with retry_policy atom keys" do
+    test "sets max_retries and backoff_ms from atom-keyed policy" do
+      job = Job.new(%{name: "r", retry_policy: %{max_retries: 5, backoff_ms: 500}})
+      assert job.max_retries == 5
+      assert job.backoff_ms == 500
+    end
+
+    test "generates an id when not provided" do
+      job = Job.new(%{name: "auto_id"})
+      assert job.id != nil
+      assert byte_size(job.id) > 0
+    end
+  end
 end

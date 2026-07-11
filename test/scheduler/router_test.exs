@@ -98,6 +98,44 @@ defmodule Scheduler.RouterTest do
     end
   end
 
+  describe "POST /jobs with cron" do
+    test "creates a job with valid cron expression" do
+      conn =
+        conn(:post, "/jobs", %{"name" => "cron_job", "cron" => "* * * * *"})
+        |> put_req_header("content-type", "application/json")
+        |> Router.call(@opts)
+
+      assert conn.status == 201
+    end
+
+    test "rejects job with invalid cron expression" do
+      conn =
+        conn(:post, "/jobs", %{"name" => "bad_cron", "cron" => "not-a-cron"})
+        |> put_req_header("content-type", "application/json")
+        |> Router.call(@opts)
+
+      assert conn.status == 400
+      body = Jason.decode!(conn.resp_body)
+      assert body["error"] =~ "Invalid cron"
+    end
+  end
+
+  describe "POST /jobs with cycle" do
+    test "rejects job that would create a dependency cycle" do
+      # Create job "a" depending on "b"
+      Scheduler.Store.put(Scheduler.Job.new(%{id: "a", name: "a", deps: ["b"]}))
+      # Now try to create "b" depending on "a" -> cycle
+      conn =
+        conn(:post, "/jobs", %{"id" => "b", "name" => "b", "deps" => ["a"]})
+        |> put_req_header("content-type", "application/json")
+        |> Router.call(@opts)
+
+      assert conn.status == 400
+      body = Jason.decode!(conn.resp_body)
+      assert body["error"] =~ "cycle"
+    end
+  end
+
   describe "unknown routes" do
     test "returns 404" do
       conn = conn(:get, "/unknown") |> Router.call(@opts)

@@ -2,6 +2,7 @@ defmodule Scheduler.CronTest do
   use ExUnit.Case, async: true
 
   alias Scheduler.Cron
+  alias Scheduler.{Job, Store}
 
   describe "parse/1" do
     test "parses valid cron expression" do
@@ -47,6 +48,64 @@ defmodule Scheduler.CronTest do
 
     test "returns false for invalid expression" do
       refute Cron.matches?("invalid")
+    end
+  end
+
+  describe "check_and_trigger_jobs (via GenServer)" do
+    setup do
+      Store.clear()
+      :ok
+    end
+
+    test "triggers a cron job when expression matches" do
+      # Insert a completed job with an every-minute cron expression.
+      job = %Job{Job.new(%{id: "cron-1", name: "cron_job", cron: "* * * * *"}) | status: :completed}
+      Store.put(job)
+
+      # Send the check_cron message directly to the GenServer.
+      send(Cron, :check_cron)
+
+      # The job should be reset to :pending.
+      wait_for(fn ->
+        case Store.get("cron-1") do
+          {:ok, j} -> j.status == :pending
+          _ -> false
+        end
+      end)
+
+      assert {:ok, triggered} = Store.get("cron-1")
+      assert triggered.status == :pending
+      assert triggered.attempts == 0
+    end
+
+    test "does not trigger jobs with non-matching cron" do
+      job = %Job{Job.new(%{id: "cron-2", name: "cron_job", cron: "0 3 * * *"}) | status: :completed}
+      Store.put(job)
+
+      send(Cron, :check_cron)
+
+      # Give it a moment, then verify it's still completed.
+      Process.sleep(50)
+      assert {:ok, still} = Store.get("cron-2")
+      assert still.status == :completed
+    end
+  end
+
+  defp wait_for(fun, timeout \\ 500) do
+    deadline = System.monotonic_time(:millisecond) + timeout
+    wait_loop(fun, deadline)
+  end
+
+  defp wait_loop(fun, deadline) do
+    if fun.() do
+      :ok
+    else
+      if System.monotonic_time(:millisecond) < deadline do
+        Process.sleep(10)
+        wait_loop(fun, deadline)
+      else
+        :ok
+      end
     end
   end
 end
