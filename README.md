@@ -1,7 +1,7 @@
 # JobScheduler
 
-[![CI](https://github.com/ai-pavel/job-scheduler/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-pavel/job-scheduler/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/ai-pavel/job-scheduler/branch/main/graph/badge.svg)](https://codecov.io/gh/ai-pavel/job-scheduler)
+[![CI](https://github.com/ai-pavel/planner/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-pavel/planner/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ai-pavel/planner/branch/main/graph/badge.svg)](https://codecov.io/gh/ai-pavel/planner)
 
 An Elixir/OTP distributed job scheduler with DAG dependencies, configurable retry policies, and cron-based triggers.
 
