@@ -97,7 +97,7 @@ defmodule Scheduler.Router do
 
   # GET /health - Health check
   get "/health" do
-    send_json(conn, 200, Jason.OrderedObject.new(status: "ok", service: "job-scheduler"))
+    send_json(conn, 200, Jason.OrderedObject.new(status: "ok", service: "planner"))
   end
 
   match _ do

@@ -104,7 +104,7 @@ defmodule Scheduler.RouterTest do
 
       assert conn.status == 200
       assert get_resp_header(conn, "content-type") == ["application/json; charset=utf-8"]
-      assert Jason.decode!(conn.resp_body) == %{"status" => "ok", "service" => "job-scheduler"}
+      assert Jason.decode!(conn.resp_body) == %{"status" => "ok", "service" => "planner"}
     end
   end
 
